@@ -10,6 +10,7 @@ from tqdm import tqdm
 from genrec.dataset import AbstractDataset
 from genrec.tokenizer import SemIDTokenizer
 from genrec.tokenizers.MultiHeadVQVAE.layers import MultiHeadVQVAE
+from genrec.utils import redact_path
 
 
 class EmbDataset(torch.utils.data.Dataset):
@@ -225,7 +226,9 @@ class MultiHeadVQVAETokenizer(SemIDTokenizer):
                     self.config['sem_ids_dir'], self.config['sem_ids_path'])
 
         if not os.path.exists(sem_ids_path):
-            self.log(f"{sem_ids_path} not found. Generating semantic IDs...")
+            self.log(
+                f"{redact_path(sem_ids_path)} not found. "
+                f"Generating semantic IDs...")
 
             sent_embs = self.load_sent_emb(dataset)
             self.log(
@@ -248,7 +251,9 @@ class MultiHeadVQVAETokenizer(SemIDTokenizer):
             vqvae_model = self._train_vqvae(embs_for_training, model_path)
             self._generate_semantic_id(vqvae_model, sent_embs, sem_ids_path)
 
-        self.log(f'[TOKENIZER] Loading semantic IDs from {sem_ids_path}...')
+        self.log(
+            f'[TOKENIZER] Loading semantic IDs from '
+            f'{redact_path(sem_ids_path)}...')
         item2sem_ids = json.load(open(sem_ids_path, 'r'))
         item2tokens = self._sem_ids_to_tokens(item2sem_ids)
 
@@ -328,7 +333,9 @@ class MultiHeadVQVAETokenizer(SemIDTokenizer):
             item = self.id2item[int(item_id) + 1]
             item2sem_ids[item] = list(indices)
 
-        self.log(f'[TOKENIZER] Saving semantic IDs to {sem_ids_path}...')
+        self.log(
+            f'[TOKENIZER] Saving semantic IDs to '
+            f'{redact_path(sem_ids_path)}...')
         with open(sem_ids_path, 'w') as f:
             # json.dump(all_indices_str, f)
             json.dump(item2sem_ids, f)

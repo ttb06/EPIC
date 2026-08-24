@@ -7,7 +7,6 @@ import importlib
 import logging
 import os
 import re
-import sys
 from logging import getLogger
 from typing import TYPE_CHECKING, Optional, Union
 
@@ -58,17 +57,14 @@ def get_local_time():
     return cur
 
 
-def get_command_line_args_str():
-    return '_'.join(sys.argv).replace('/', '|')
-
-
 def get_file_name(config: dict, suffix: str = ''):
     config_str = "".join(
         [str(value) for key, value in config.items() if key != 'accelerator'])
     md5 = hashlib.md5(config_str.encode(encoding="utf-8")).hexdigest()[:6]
-    command_line_args = get_command_line_args_str()
-    logfilename = "{}-{}-{}-{}{}".format(config["run_id"], command_line_args,
-                                         config['run_local_time'], md5, suffix)
+    # Do not put command-line values in tracker names: arguments commonly
+    # contain absolute dataset and checkpoint paths on shared clusters.
+    logfilename = "{}-{}-{}{}".format(config["run_id"],
+                                      config['run_local_time'], md5, suffix)
     return logfilename
 
 
@@ -489,10 +485,48 @@ def init_device():
 
 
 def config_for_log(config: dict) -> dict:
+    """Return a publication-safe copy of a runtime configuration.
+
+    Absolute paths, credentials, and account identifiers are useful locally
+    but can deanonymize authors when logs or result JSON files are shared.
+    Relative artifact paths and ordinary hyperparameters are preserved.
+    """
     config = config.copy()
     config.pop('device', None)
     config.pop('accelerator', None)
+    private_names = {
+        'author', 'email', 'entity', 'organization', 'team', 'user',
+        'username', 'wandb_entity',
+    }
+    secret_names = {
+        'api_key', 'apikey', 'access_token', 'auth_token', 'credential',
+        'github_token', 'hf_token', 'openai_api_key', 'password', 'secret',
+    }
+    secret_suffixes = ('_api_key', '_access_token', '_auth_token',
+                       '_credential', '_password', '_secret')
     for k, v in config.items():
+        normalized_key = str(k).lower()
+        if normalized_key in private_names:
+            config[k] = '<redacted>'
+            continue
+        if (normalized_key in secret_names
+                or normalized_key.endswith(secret_suffixes)):
+            config[k] = '<redacted>'
+            continue
+        is_path_key = (normalized_key.endswith(('_dir', '_path', '_file'))
+                       or normalized_key == 'init_checkpoint')
+        if is_path_key:
+            config[k] = redact_path(v)
+            continue
         if isinstance(v, list):
             config[k] = str(v)
     return config
+
+
+def redact_path(value):
+    """Hide absolute host paths while keeping portable relative paths."""
+    if isinstance(value, (str, os.PathLike)):
+        path = os.fspath(value)
+        if os.path.isabs(path):
+            return '<external-path>'
+    return value

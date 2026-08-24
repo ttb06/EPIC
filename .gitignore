@@ -9,12 +9,19 @@ data/
 outputs/
 logs/
 tensorboard/
+wandb/
+.wandb/
 checkpoints/
 artifacts/
 *.pth
 *.pt
 *.ckpt
 *.sent_emb
+*.log
+*.out
+*.pem
+*.key
+credentials.json
 
 .DS_Store
 .idea/

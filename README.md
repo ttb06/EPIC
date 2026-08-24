@@ -22,6 +22,20 @@ reranker.
 Exploratory sweeps, retired variants, checkpoints, logs, private paths, and
 draft paper material are intentionally excluded.
 
+### Anonymous-artifact policy
+
+Checkpoints and datasets stay outside Git. Pass them at runtime with
+`--init_checkpoint` and the data-path options shown below. Absolute paths,
+credentials, and account identifiers are redacted automatically from generated
+logs and result JSON files. Local TensorBoard output is supported, but this
+release does not configure W&B or another external experiment tracker. If W&B
+is installed in the environment, `WANDB_MODE=disabled` provides an additional
+opt-out guard.
+
+Before creating a review link, audit the tracked snapshot (not ignored local
+outputs) with `git grep` and verify that commit author/committer metadata uses
+the anonymous identity.
+
 ## Environment
 
 Python 3.10 and a CUDA-capable PyTorch installation are recommended.
@@ -152,6 +166,12 @@ python main.py \
   --init_checkpoint=/absolute/path/to/epic_checkpoint.pth \
   --eval_only=True
 ```
+
+Evaluation-only loading is strict by default: every model key in the EPIC
+checkpoint must match the release architecture. Training the EPIC adapter from
+a backbone checkpoint remains non-strict because the new adapter keys do not
+exist in the backbone state dict. Checkpoint files are loaded with PyTorch's
+weights-only mode.
 
 For multiple seeds, repeat adapter training with `--rand_seed=<seed>` and a
 unique `--run_id=<name>`. Report the mean and sample standard deviation. Model

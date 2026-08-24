@@ -8,7 +8,8 @@ import yaml
 from accelerate import Accelerator
 
 from genrec.utils import (get_config, get_dataset, getLogger, init_device,
-                          init_logger, init_seed, parse_command_line_args)
+                          init_logger, init_seed, parse_command_line_args,
+                          config_for_log)
 
 
 def parse_args():
@@ -59,7 +60,7 @@ if __name__ == '__main__':
     init_logger(config)
     logger = getLogger()
 
-    for key, value in config.items():
+    for key, value in config_for_log(config).items():
         logger.info(f'{key}: {value}')
 
     tokenizer_name = config['tokenizer_name']

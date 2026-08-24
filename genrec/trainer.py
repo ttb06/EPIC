@@ -15,7 +15,8 @@ from transformers.optimization import get_scheduler
 from genrec.evaluator import Evaluator
 from genrec.model import AbstractModel
 from genrec.tokenizer import AbstractTokenizer
-from genrec.utils import config_for_log, get_file_name, get_total_steps, log
+from genrec.utils import (config_for_log, get_file_name, get_total_steps, log,
+                          redact_path)
 
 
 class Trainer:
@@ -137,7 +138,7 @@ class Trainer:
                 )
                 self.log(
                     f'[Epoch 0] Saved initial checkpoint to '
-                    f'{self.saved_model_ckpt}')
+                    f'{redact_path(self.saved_model_ckpt)}')
 
         for epoch in range(n_epochs):
             start_time = time.time()
@@ -270,7 +271,8 @@ class Trainer:
                     if self.accelerator.is_main_process:
                         self.save_model()
                         self.log(
-                            f'[Epoch {epoch + 1}] Saved model checkpoint to {self.saved_model_ckpt}'
+                            f'[Epoch {epoch + 1}] Saved model checkpoint to '
+                            f'{redact_path(self.saved_model_ckpt)}'
                         )
 
                 if self.config[

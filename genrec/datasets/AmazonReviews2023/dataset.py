@@ -6,7 +6,7 @@ from datasets import Dataset, load_dataset
 from tqdm import tqdm
 
 from genrec.dataset import AbstractDataset
-from genrec.utils import clean_text
+from genrec.utils import clean_text, redact_path
 
 
 class AmazonReviews2023(AbstractDataset):
@@ -86,7 +86,9 @@ class AmazonReviews2023(AbstractDataset):
     def _remap_ids(self, datasets, output_path: str):
         id_mapping_file = os.path.join(output_path, 'id_mapping.json')
         if os.path.exists(id_mapping_file):
-            self.log(f'[DATASET] Loading id mapping from {id_mapping_file}')
+            self.log(
+                f'[DATASET] Loading id mapping from '
+                f'{redact_path(id_mapping_file)}')
             id_mapping = json.load(open(id_mapping_file, 'r'))
             return id_mapping
 
@@ -222,7 +224,9 @@ class AmazonReviews2023(AbstractDataset):
     def _merge_augmented_dataset(self, datasets, output_path: str):
         seq_file = os.path.join(output_path, 'all_item_seqs.json')
         if os.path.exists(seq_file):
-            self.log(f'[DATASET] Loading merged dataset from {seq_file}')
+            self.log(
+                f'[DATASET] Loading merged dataset from '
+                f'{redact_path(seq_file)}')
             all_item_seqs = json.load(open(seq_file, 'r'))
             return all_item_seqs
 
@@ -296,7 +300,8 @@ class AmazonReviews2023(AbstractDataset):
         # still needs the three benchmark splits in memory.
         if os.path.isdir(raw_data_dir):
             self.logger.info(
-                f'[DATASET] Loading raw data from {raw_data_dir}')
+                f'[DATASET] Loading raw data from '
+                f'{redact_path(raw_data_dir)}')
             datasets = load_dataset(
                 'csv',
                 data_files={

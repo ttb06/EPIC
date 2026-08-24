@@ -34,3 +34,4 @@ topk: [1,5,10]
 metrics: [ndcg,recall]
 evaluation_target: item
 eval_only: false
+eval_checkpoint_strict: true

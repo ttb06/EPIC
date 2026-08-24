@@ -14,7 +14,7 @@ from genrec.model import AbstractModel
 from genrec.tokenizer import AbstractTokenizer
 from genrec.utils import (get_config, get_dataset, get_model, get_tokenizer,
                           get_trainer, init_device, init_logger, init_seed,
-                          log)
+                          log, config_for_log, redact_path)
 
 
 class Pipeline:
@@ -50,7 +50,7 @@ class Pipeline:
         init_logger(self.config)
         self.logger = getLogger()
 
-        for key, value in self.config.items():
+        for key, value in config_for_log(self.config).items():
             self.log(f'{key}: {value}')
 
         # Dataset
@@ -79,18 +79,29 @@ class Pipeline:
 
         init_checkpoint = str(
             self.config.get('init_checkpoint', '') or '').strip()
+        eval_only = bool(self.config.get('eval_only', False))
         if init_checkpoint:
             if not os.path.isfile(init_checkpoint):
                 raise FileNotFoundError(
                     f'Initial model checkpoint not found: {init_checkpoint}')
-            state = torch.load(init_checkpoint, map_location='cpu')
-            self.model.load_state_dict(
-                state,
-                strict=bool(self.config.get('init_checkpoint_strict', True)),
-            )
+            state = torch.load(init_checkpoint,
+                               map_location='cpu',
+                               weights_only=True)
+            load_strict = bool(
+                self.config.get('eval_checkpoint_strict', True)
+                if eval_only else
+                self.config.get('init_checkpoint_strict', True))
+            incompatible = self.model.load_state_dict(state,
+                                                      strict=load_strict)
+            if incompatible.missing_keys or incompatible.unexpected_keys:
+                self.log(
+                    'Non-strict checkpoint load: '
+                    f'missing={incompatible.missing_keys}, '
+                    f'unexpected={incompatible.unexpected_keys}',
+                    level='warning')
             self.log(
                 f'Initialized model weights from checkpoint: '
-                f'{init_checkpoint}')
+                f'{redact_path(init_checkpoint)}')
 
         trainable_mode = str(
             self.config.get('trainable_parameter_mode', 'all'))
@@ -197,7 +208,7 @@ class Pipeline:
         if not eval_only:
             self.log(
                 'Loaded best model checkpoint from '
-                f'{self.trainer.saved_model_ckpt}')
+                f'{redact_path(self.trainer.saved_model_ckpt)}')
             self.model.load_state_dict(
                 torch.load(self.trainer.saved_model_ckpt, map_location='cpu'))
 
@@ -211,7 +222,7 @@ class Pipeline:
                 self.accelerator.log({f'Test_Metric/{key}': test_results[key]})
         self.log(f'Test Results: {test_results}')
 
-        results: Dict = copy.deepcopy(self.config)
+        results: Dict = config_for_log(copy.deepcopy(self.config))
         for key, value in results.items():
             try:
                 results[key] = str(value)
