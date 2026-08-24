@@ -1,0 +1,14 @@
+category: Beauty
+metadata: sentence
+split: leave_one_out
+cache_dir: cache/
+log_dir: logs/
+base_result_dir: output/
+tensorboard_log_dir: tensorboard/
+ckpt_dir: ckpts/
+run_id: lladarec_amazon2014
+rand_seed: 2024
+reproducibility: true
+max_users: 10000000
+local_reviews_path: ../dataset_shared/reviews_Beauty_5.json.gz
+local_meta_path: ../dataset_shared/meta_Beauty.json.gz

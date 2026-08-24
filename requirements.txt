@@ -1,0 +1,14 @@
+accelerate==1.10.0
+datasets==4.0.0
+numpy==2.3.5
+PyYAML==6.0.3
+Requests==2.32.5
+scikit_learn==1.7.2
+sentence_transformers==5.1.0
+torch==2.6.0
+tqdm==4.67.1
+transformers==4.55.0
+
+# flash-attn is optional. The checked-in LLaDA configuration defaults to
+# flash_attention=False, while installing flash-attn requires a CUDA build
+# toolchain that is not available on every login node.
