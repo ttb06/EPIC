@@ -228,4 +228,4 @@ python -m unittest discover -s tests -v
 This implementation builds on
 [LLaDA-Rec](https://github.com/TengShi-RUC/LLaDA-Rec). See `NOTICE.md` for code
 provenance. Author identities and the final bibliographic entry are omitted
-during double-blind review; `CITATION.cff` should be updated after acceptance.
+during double-blind review.
