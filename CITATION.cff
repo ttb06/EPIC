@@ -1,9 +1,0 @@
-cff-version: 1.2.0
-message: "If you use this software, please cite the EPIC paper."
-title: "EPIC: Explicit Posterior Item Conditioning for Semantic-ID Diffusion Recommendation"
-type: software
-authors:
-  - family-names: Anonymous
-    given-names: Author
-version: 1.0.0
-date-released: 2026-08-24
